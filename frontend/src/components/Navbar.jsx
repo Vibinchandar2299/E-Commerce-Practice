@@ -12,19 +12,26 @@ const Navbar = () => {
   };
 
   return (
-    <nav style={{ padding: "10px", borderBottom: "1px solid #ccc" }}>
-      <Link to="/">Home</Link> |{" "}
-      {token ? (
-        <>
-          <Link to="/cart">Cart</Link> |{" "}
-          {isAdmin && <Link to="/admin">Admin Dashboard</Link>} |{" "}
-          <button onClick={logout}>Logout</button>
-        </>
-      ) : (
-        <>
-          <Link to="/login">Login</Link> | <Link to="/signup">Signup</Link>
-        </>
-      )}
+    <nav>
+      <div className="nav-left">
+        <Link to="/" className="logo">🛒 ShopHub</Link>
+        <Link to="/">Home</Link>
+      </div>
+      <div className="nav-right">
+        {token ? (
+          <>
+            {!isAdmin && <Link to="/cart">🛍️ Cart</Link>}
+            <Link to="/profile">👤 Profile</Link>
+            {isAdmin && <Link to="/admin">⚙️ Admin</Link>}
+            <button onClick={logout}>Logout</button>
+          </>
+        ) : (
+          <>
+            <Link to="/login">Login</Link>
+            <Link to="/signup">Signup</Link>
+          </>
+        )}
+      </div>
     </nav>
   );
 };
