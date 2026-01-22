@@ -62,6 +62,21 @@ const AdminDashboard = () => {
       });
   };
 
+  const deleteProduct = (productId) => {
+    if (window.confirm("⚠️ Are you sure you want to delete this product?")) {
+      setLoading(true);
+      API.delete(`/products/${productId}`)
+        .then(() => {
+          alert("✅ Product Deleted Successfully");
+          fetchProducts();
+        })
+        .catch(() => {
+          setError("❌ Error deleting product");
+        })
+        .finally(() => setLoading(false));
+    }
+  };
+
   return (
     <div className="container">
       <h1>⚙️ Admin Dashboard</h1>
@@ -142,20 +157,31 @@ const AdminDashboard = () => {
                   alignItems: "center",
                 }}
               >
-                <div style={{ flex: 1 }}>
+              <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: "600", marginBottom: "0.25rem" }}>{product.name}</div>
                   <div style={{ fontSize: "0.9rem", color: "#666" }}>
                     Price: <strong>₹ {product.price}</strong>
                   </div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => selectProductForEdit(product)}
-                  className="admin-edit-btn"
-                  disabled={loading}
-                >
-                  Edit
-                </button>
+                <div style={{ display: "flex", gap: "0.5rem" }}>
+                  <button
+                    type="button"
+                    onClick={() => selectProductForEdit(product)}
+                    className="admin-edit-btn"
+                    disabled={loading}
+                  >
+                    Edit
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => deleteProduct(product._id)}
+                    className="admin-edit-btn"
+                    style={{ backgroundColor: "#dc3545" }}
+                    disabled={loading}
+                  >
+                    Delete
+                  </button>
+                </div>
               </div>
             ))}
           </div>
