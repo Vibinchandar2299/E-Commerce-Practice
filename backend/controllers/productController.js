@@ -77,25 +77,61 @@ exports.getProducts = async (req, res) => {
 };
 
 exports.addProduct = async (req, res) => {
-  const product = new Product(req.body);
-  await product.save();
-  res.json("Product Added");
+  try {
+    let imageUrl = req.body.image;
+    
+    // If file is uploaded, use file path; otherwise use the provided URL
+    if (req.file) {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
+    
+    if (!imageUrl) {
+      return res.status(400).json("Image URL or file is required");
+    }
+    
+    const product = new Product({
+      name: req.body.name,
+      price: req.body.price,
+      image: imageUrl,
+      description: req.body.description,
+    });
+    
+    await product.save();
+    res.json(product);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 exports.updateProduct = async (req, res) => {
-  const updated = await Product.findByIdAndUpdate(
-    req.params.id,
-    {
-      name: req.body.name,
-      price: req.body.price,
-      image: req.body.image,
-      description: req.body.description,
-    },
-    { new: true }
-  );
+  try {
+    let imageUrl = req.body.image;
+    
+    // If file is uploaded, use file path; otherwise use the provided URL
+    if (req.file) {
+      imageUrl = `/uploads/${req.file.filename}`;
+    }
+    
+    if (!imageUrl) {
+      return res.status(400).json("Image URL or file is required");
+    }
+    
+    const updated = await Product.findByIdAndUpdate(
+      req.params.id,
+      {
+        name: req.body.name,
+        price: req.body.price,
+        image: imageUrl,
+        description: req.body.description,
+      },
+      { new: true }
+    );
 
-  if (!updated) return res.status(404).json("Product not found");
-  res.json(updated);
+    if (!updated) return res.status(404).json("Product not found");
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 };
 
 exports.deleteProduct = async (req, res) => {

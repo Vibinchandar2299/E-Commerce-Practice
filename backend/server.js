@@ -43,8 +43,14 @@ const seedDevAdmin = async () => {
 
 const app = express();
 
-app.use(cors());
+app.use(cors({
+  origin: process.env.FRONTEND_URL || "http://localhost:3000",
+  credentials: true
+}));
 app.use(express.json());
+
+// Serve uploaded files
+app.use("/uploads", express.static("uploads"));
 
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/users", require("./routes/userRoutes"));
@@ -56,7 +62,8 @@ app.use("/api/order", require("./routes/orderRoutes"));
   try {
     await connectDB();
     await seedDevAdmin();
-    app.listen(5000, () => console.log("Server Started"));
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => console.log(`Server Started on port ${PORT}`));
   } catch (err) {
     console.error("Failed to start server", err);
     process.exit(1);

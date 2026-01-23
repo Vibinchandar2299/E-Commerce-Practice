@@ -5,6 +5,8 @@ const AdminDashboard = () => {
   const [name, setName] = useState("");
   const [price, setPrice] = useState("");
   const [image, setImage] = useState("");
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState("");
   const [description, setDescription] = useState("");
   const [products, setProducts] = useState([]);
   const [selectedProductId, setSelectedProductId] = useState(null);
@@ -26,28 +28,81 @@ const AdminDashboard = () => {
     setName("");
     setPrice("");
     setImage("");
+    setImageFile(null);
+    setImagePreview("");
     setDescription("");
     setError("");
   };
 
   const selectProductForEdit = (product) => {
+    const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+    let imageUrl = product.image || "";
+    
+    // Build full URL for uploaded files
+    if (imageUrl && imageUrl.startsWith("/uploads/")) {
+      imageUrl = API_BASE + imageUrl;
+    }
+    
     setSelectedProductId(product._id);
     setName(product.name || "");
     setPrice(String(product.price ?? ""));
     setImage(product.image || "");
+    setImageFile(null);
+    setImagePreview(imageUrl);
     setDescription(product.description || "");
     setError("");
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+      setImage(""); // Clear URL if file is selected
+    }
+  };
+
+  const handleImageURL = (e) => {
+    const url = e.target.value;
+    setImage(url);
+    setImageFile(null);
+    setImagePreview(url || "");
   };
 
   const addProduct = (e) => {
     e.preventDefault();
     setError("");
+    
+    // Check if either image or imageFile is provided
+    if (!image && !imageFile) {
+      setError("❌ Please provide either an image URL or upload an image file");
+      return;
+    }
+
     setLoading(true);
-    const payload = { name, price: parseFloat(price), image, description };
+    
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("price", parseFloat(price));
+    formData.append("description", description);
+    
+    if (imageFile) {
+      formData.append("image", imageFile);
+    } else {
+      formData.append("image", image);
+    }
 
     const req = selectedProductId
-      ? API.put(`/products/${selectedProductId}`, payload)
-      : API.post("/products", payload);
+      ? API.put(`/products/${selectedProductId}`, formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        })
+      : API.post("/products", formData, {
+          headers: { "Content-Type": "multipart/form-data" }
+        });
 
     req
       .then(() => {
@@ -112,10 +167,39 @@ const AdminDashboard = () => {
                 type="url"
                 placeholder="Enter image URL"
                 value={image}
-                onChange={(e) => setImage(e.target.value)}
-                required
+                onChange={handleImageURL}
               />
+              <small style={{ color: "#999", marginTop: "0.25rem", display: "block" }}>
+                OR upload an image file below
+              </small>
             </div>
+            <div className="form-group">
+              <label>Upload Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+              />
+              <small style={{ color: "#999", marginTop: "0.25rem", display: "block" }}>
+                Supported formats: JPG, PNG, GIF, WebP
+              </small>
+            </div>
+            {imagePreview && (
+              <div className="form-group" style={{ textAlign: "center" }}>
+                <label>Image Preview</label>
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "200px",
+                    borderRadius: "8px",
+                    marginTop: "0.5rem",
+                    objectFit: "cover"
+                  }}
+                />
+              </div>
+            )}
             <div className="form-group">
               <label>Description</label>
               <textarea

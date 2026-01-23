@@ -2,7 +2,16 @@ import React, { useState } from "react";
 
 const ProductCard = ({ product, addToCart, buyNow }) => {
   const fallbackImage = "https://via.placeholder.com/600x400?text=No+Image";
-  const [imgSrc, setImgSrc] = useState(product?.image || fallbackImage);
+  
+  // Build full image URL if it's a relative path (uploaded file)
+  let imageUrl = product?.image || fallbackImage;
+  const API_BASE = process.env.REACT_APP_API_BASE_URL || "http://localhost:5000";
+  
+  if (imageUrl && imageUrl.startsWith("/uploads/")) {
+    imageUrl = API_BASE + imageUrl;
+  }
+  
+  const [imgSrc, setImgSrc] = useState(imageUrl);
 
   return (
     <div className="product-card">
